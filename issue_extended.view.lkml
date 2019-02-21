@@ -88,8 +88,8 @@ view: issue_extended {
          LEFT OUTER JOIN jira.component
             ON issue_component.component_id = component.id
 
-         LEFT OUTER JOIN jira.issue_fix_version
-            ON issue.id = issue_fix_version.issue_id
+         LEFT OUTER JOIN jira.issue_fix_version_s
+            ON issue.id = issue_fix_version_s.issue_id
          LEFT OUTER JOIN jira.version
             ON issue_fix_version_s.version_id = version.id
 

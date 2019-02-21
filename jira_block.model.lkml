@@ -190,6 +190,11 @@ explore: sprint_by_date {
 }
 
 
+explore: __jk_jira_issue_fix_version  {
+  label: "__jk_jira_issue_fix_version"
+  hidden: yes
+}
+
 explore: sprint_burndown {
   view_name: looker_calendar
   join: issue {
