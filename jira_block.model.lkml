@@ -192,7 +192,7 @@ explore: sprint_by_date {
 
 explore: __jk_jira_issue_fix_version  {
   label: "__jk_jira_issue_fix_version"
-  hidden: yes
+#  hidden: yes
 }
 
 explore: sprint_burndown {
