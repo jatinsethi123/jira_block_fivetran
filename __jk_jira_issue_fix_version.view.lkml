@@ -25,7 +25,7 @@ view: __jk_jira_issue_fix_version {
             ,  sp.end_date as sprint_end_date
             ,  sp.complete_date as sprint_complete_date
             ,  sp.board_id as sprint_team
-            ,  b.board_name as sprint_board_name
+            ,  b.name as sprint_board_name
             ,  i.reporter AS issue_reporter
             ,  ist.name AS issue_type
             ,  i.resolved AS issue_resolved_datetime
