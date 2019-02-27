@@ -53,7 +53,7 @@ view: __jk_jira_issue_fix_version {
           LEFT JOIN jira.field_option engg_team
             ON engg_team.id = i.engineering_team
           LEFT JOIN jira.sprint sp
-            on sp.id = i.id
+            on sp.id = i.sprint_id
           LEFT JOIN jira.board b
             on b.id = sp.board_id
          WHERE v.name like '[%]%' -- team names in [ ]s
