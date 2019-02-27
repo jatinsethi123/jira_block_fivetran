@@ -36,6 +36,7 @@ view: __jk_jira_issue_fix_version {
             ,  NULLIF(i.story_points,'') IS NOT NULL AS has_story_points
             ,  e.key AS epic_key
             ,  e.name AS epic_name
+            ,  e.done as epic_done
             ,  engg_team.name AS engineering_team
           FROM jira.issue i
           LEFT JOIN jira.issue_fix_version_s ifv
@@ -52,8 +53,10 @@ view: __jk_jira_issue_fix_version {
             ON e.id = i.epic_link
           LEFT JOIN jira.field_option engg_team
             ON engg_team.id = i.engineering_team
+          LEFT JOIN jira.issue_sprint isp
+            ON i.id = isp.issue_id
           LEFT JOIN jira.sprint sp
-            on sp.id = i.sprint_id
+            on sp.id = isp.sprint_id
           LEFT JOIN jira.board b
             on b.id = sp.board_id
          WHERE v.name like '[%]%' -- team names in [ ]s
@@ -234,9 +237,10 @@ view: __jk_jira_issue_fix_version {
     type: string
   }
 
-  dimension: epic_done {
+  dimension: is_epic_done {
+    sql: ${TABLE}.epic_done
     group_label: "Epic"
-    type: string
+    type: yesno
   }
 
   ## Teams
