@@ -234,9 +234,9 @@ view: __jk_jira_issue_fix_version {
     type: string
   }
 
-  dimension: is_epic_done {
+  dimension: epic_done {
     group_label: "Epic"
-    type: yesno
+    type: string
   }
 
   ## Teams
