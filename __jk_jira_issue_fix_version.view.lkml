@@ -234,6 +234,11 @@ view: __jk_jira_issue_fix_version {
     type: string
   }
 
+  dimension: is_epic_done {
+    group_label: "Epic"
+    type: yesno
+  }
+
   ## Teams
   dimension: engineering_team {
     group_label: "Team"
