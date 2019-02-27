@@ -85,6 +85,14 @@ view: __jk_jira_issue_fix_version {
     type: yesno
   }
 
+  dimension_group: version_start_date {
+    group_label: "Version Start Date"
+    type: time
+    datatype: date
+    timeframes: [date, month, year]
+    convert_tz: no
+  }
+
   ## Issues
   dimension: issue_key {
     group_label: "Issue"
