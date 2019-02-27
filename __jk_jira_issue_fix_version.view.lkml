@@ -20,6 +20,12 @@ view: __jk_jira_issue_fix_version {
             ,  r.name AS issue_resolution
             ,  NULLIF(r.name,'') IS NOT NULL AS has_issue_resolution
             ,  s.name AS issue_status
+            ,  sp.name as sprint_name
+            ,  sp.start_date as sprint_start_date
+            ,  sp.end_date as sprint_end_date
+            ,  sp.complete_date as sprint_complete_date
+            ,  sp.board_id as sprint_team
+            ,  b.board_name as sprint_board_name
             ,  i.reporter AS issue_reporter
             ,  ist.name AS issue_type
             ,  i.resolved AS issue_resolved_datetime
@@ -46,6 +52,10 @@ view: __jk_jira_issue_fix_version {
             ON e.id = i.epic_link
           LEFT JOIN jira.field_option engg_team
             ON engg_team.id = i.engineering_team
+          LEFT JOIN jira.sprint sp
+            on sp.id = i.id
+          LEFT JOIN jira.board b
+            on b.id = sp.board_id
          WHERE v.name like '[%]%' -- team names in [ ]s
          ;;
   }
@@ -176,6 +186,41 @@ view: __jk_jira_issue_fix_version {
   dimension: has_story_points {
     group_label: "Issue"
     type: yesno
+  }
+
+## Sprints
+  dimension: sprint_name {
+    group_label: "Sprint"
+    type: string
+  }
+
+  dimension_group: sprint_start_date {
+    group_label: "Sprint Start Date"
+    type: time
+    datatype: date
+    timeframes: [date, month, year]
+    convert_tz: no
+  }
+
+  dimension_group: sprint_end_date {
+    group_label: "Sprint End Date"
+    type: time
+    datatype: date
+    timeframes: [date, month, year]
+    convert_tz: no
+  }
+
+  dimension_group: sprint_complete_date {
+    group_label: "Sprint Complete Date"
+    type: time
+    datatype: date
+    timeframes: [date, month, year]
+    convert_tz: no
+  }
+
+  dimension: sprint_board_name {
+    group_label: "Sprint"
+    type: string
   }
 
   ## Epics
