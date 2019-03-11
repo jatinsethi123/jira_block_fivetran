@@ -4,7 +4,33 @@ view: __jk_jira_issue_fix_version {
     sql_trigger_value: SELECT CURRENT_DATE ;;
     sortkeys: ["issue_start_date"]
     distribution: "issue_id"
-    sql: SELECT TRANSLATE(SUBSTRING(v.name,1,STRPOS(v.name,']')),'[]','  ') AS version_team
+    sql: with ish_window as (
+select ish.issue_id,
+       ish.sprint_id,
+       ish.time as effective_timestamp,
+       dateadd(millisecond,-1,
+               ISNULL((lead(time) over (partition by ish.issue_id order by ish.time)),'9999-12-31')
+       ) as expiry_timestamp
+  from jira.issue_sprint_history ish
+  join jira.sprint s on s.id = ish.sprint_id
+ where 1=1
+),
+ish_change as (
+select s.id as sprint_id,
+       i.id as issue_id,
+       i.story_points,
+       ish.effective_timestamp,
+       ish.expiry_timestamp,
+       s.start_date as sprint_start_date,
+       s.end_date sprint_end_Date
+  from ish_window ish
+  join jira.issue i on i.id = ish.issue_id
+  join jira.sprint s on s.id = ish.sprint_id
+ where 1=1
+  and (s.start_date between ish.effective_timestamp and ish.expiry_timestamp)
+  and (s.end_date between ish.effective_timestamp and ish.expiry_timestamp)
+)
+SELECT TRANSLATE(SUBSTRING(v.name,1,STRPOS(v.name,']')),'[]','  ') AS version_team
             ,  v.id AS issue_fix_version_id
             ,  v.name AS version_name
             ,  v.released AS is_version_released
@@ -53,13 +79,15 @@ view: __jk_jira_issue_fix_version {
             ON e.id = i.epic_link
           LEFT JOIN jira.field_option engg_team
             ON engg_team.id = i.engineering_team
-          LEFT JOIN jira.issue_sprint isp
+          LEFT JOIN ish_change isp -- jira.issue_sprint isp
             ON i.id = isp.issue_id
           LEFT JOIN jira.sprint sp
-            on sp.id = isp.sprint_id
+            ON sp.id = isp.sprint_id
+     -- and (sp.start_date between isp.effective_timestamp and isp.expiry_timestamp)
+    --  and (sp.end_date between isp.effective_timestamp and isp.expiry_timestamp)
           LEFT JOIN jira.board b
             on b.id = sp.board_id
-         WHERE v.name like '[%]%' -- team names in [ ]s
+         --WHERE v.name like '[%]%' -- team names in [ ]s
          ;;
   }
 
@@ -238,7 +266,7 @@ view: __jk_jira_issue_fix_version {
   }
 
   dimension: is_epic_done {
-    sql: ${TABLE}.epic_done
+    sql: ${TABLE}.epic_done ;;
     group_label: "Epic"
     type: yesno
   }
@@ -252,6 +280,11 @@ view: __jk_jira_issue_fix_version {
   dimension: version_team {
     group_label: "Team"
     type: string
+  }
+
+  dimension: is_version_team {
+    sql:${version_team} like '[%]%' ;;
+    type: yesno
   }
 
   ## Measures ##
