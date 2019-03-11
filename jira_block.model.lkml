@@ -195,6 +195,10 @@ explore: __jk_jira_issue_fix_version  {
 #  hidden: yes
 }
 
+explore: __jk_sprint_start_end  {
+  label: "__jk_sprint_start_end"
+}
+
 explore: sprint_burndown {
   view_name: looker_calendar
   join: issue {
