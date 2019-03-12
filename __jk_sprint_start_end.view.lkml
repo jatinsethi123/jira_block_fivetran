@@ -1,8 +1,8 @@
 view: __jk_sprint_start_end {
   derived_table: {
     sql_trigger_value: SELECT CURRENT_DATE ;;
-    sortkeys: ["sprint_start_date"]
-    distribution: "issue_id"
+#    sortkeys: ["sprint_start_date"]
+#    distribution: "issue_id"
     sql: with all_issues_and_sprints as (
 select ish.issue_id,
          ish.sprint_id,
