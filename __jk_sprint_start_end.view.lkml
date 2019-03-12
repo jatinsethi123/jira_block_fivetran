@@ -178,53 +178,27 @@ select s.sprint_name,
  group by 1, 2, 3, 4, 5, 6
 ;
 */
-select i.key, s.*
+select i.key AS issue_key,
+       s.sprint_id,
+       s.issue_id,
+       s.story_points,
+       s.sprint_name,
+       s.sprint_start_date,
+       sp.end_date AS sprint_end_date,
+       s.sprint_complete_date,
+       s.issue_status,
+       s.date_type AS sprint_start_end_type,
+       b.name AS board_name,
+       ist.name AS issue_type,
+       i.start_date AS issue_start_date
   from sprint_start_end_info s
   left join jira.sprint sp on sp.id = s.sprint_id
   left join jira.board b on b.id = sp.board_id
   left join jira.issue i on i.id = s.issue_id
- where s.sprint_name = 'Stepreckon Sprint 26'
-   and s.date_type = 'sprint_start'
- order by s.date_type desc, i.key
+  left join jira.issue_type ist on ist.id = i.issue_type
 ;;
       }
 
-  ## Issue_Fix_Versions
-  dimension: version_name {
-    group_label: "Issue Fix Version"
-    type:  string
-  }
-
-  dimension: is_version_released {
-    group_label: "Issue Fix Version"
-    type: yesno
-  }
-
-  dimension_group: version_release_date {
-    group_label: "Version Release Date"
-    type: time
-    datatype: date
-    timeframes: [date, month, year]
-    convert_tz: no
-  }
-
-  dimension: version_description {
-    group_label: "Issue Fix Version"
-    type: string
-  }
-
-  dimension: is_version_overdue {
-    group_label: "Issue Fix Version"
-    type: yesno
-  }
-
-  dimension_group: version_start_date {
-    group_label: "Version Start Date"
-    type: time
-    datatype: date
-    timeframes: [date, month, year]
-    convert_tz: no
-  }
 
   ## Issues
   dimension: issue_key {
@@ -238,26 +212,6 @@ select i.key, s.*
     datatype: date
     timeframes: [date, month, year]
     convert_tz: no
-  }
-
-  dimension: issue_priority {
-    group_label: "Issue"
-    type: number
-  }
-
-  dimension: issue_assignee {
-    group_label: "Issue"
-    type: string
-  }
-
-  dimension: issue_resolution {
-    group_label: "Issue"
-    type: string
-  }
-
-  dimension: has_issue_resolution {
-    group_label: "Issue"
-    type: yesno
   }
 
   dimension: issue_status {
@@ -275,43 +229,18 @@ select i.key, s.*
     type: string
   }
 
-  dimension_group: issue_resolved_datetime {
-    group_label: "Issue Resolved Date"
-    type: time
-    datatype: date
-    timeframes: [date, month, year]
-    convert_tz: no
-  }
-
-  dimension_group: issue_created_datetime {
-    group_label: "Issue Created Date"
-    type: time
-    datatype: date
-    timeframes: [date, month, year]
-    convert_tz: no
-  }
-
-  dimension: issue_description {
-    group_label: "Issue"
-    type: string
-  }
-
-  dimension: issue_summary {
-    group_label: "Issue"
-    type: string
-  }
-
   dimension: issue_story_points {
     group_label: "Issue"
     type: number
-  }
-
-  dimension: has_story_points {
-    group_label: "Issue"
-    type: yesno
+    sql: ${TABLE}.story_points ;;
   }
 
 ## Sprints
+  dimension: sprint_start_end_type {
+    group_label: "Sprint"
+    type: string
+  }
+
   dimension: sprint_name {
     group_label: "Sprint"
     type: string
@@ -341,42 +270,9 @@ select i.key, s.*
     convert_tz: no
   }
 
-  dimension: sprint_board_name {
+  dimension: board_name {
     group_label: "Sprint"
     type: string
-  }
-
-  ## Epics
-  dimension: epic_key {
-    group_label: "Epic"
-    type: string
-  }
-
-  dimension: epic_name {
-    group_label: "Epic"
-    type: string
-  }
-
-  dimension: is_epic_done {
-    sql: ${TABLE}.epic_done ;;
-    group_label: "Epic"
-    type: yesno
-  }
-
-  ## Teams
-  dimension: engineering_team {
-    group_label: "Team"
-    type: string
-  }
-
-  dimension: version_team {
-    group_label: "Team"
-    type: string
-  }
-
-  dimension: is_version_team {
-    sql:${version_team} like '[%]%' ;;
-    type: yesno
   }
 
   ## Measures ##
