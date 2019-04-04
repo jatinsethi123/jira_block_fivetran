@@ -103,12 +103,17 @@ view: __jk_sprint_start_end {
           sprint_start_end_info as (
             select ss.id AS sprint_id,
                    isd_s.issue_id,
-                   ipd_s.story_points,
+                   CASE WHEN ISNULL(istd_s.status,'NA') != 'Done'
+                        THEN ipd_s.story_points
+                        ELSE 0
+                    END AS story_points,
                    ss.name AS sprint_name,
                    isd_s.effective_date AS date_added_to_sprint,
                    CONVERT_TIMEZONE('UTC', 'America/New_York', ss.start_date) AS sprint_start_date,
                    CONVERT_TIMEZONE('UTC', 'America/New_York', ss.complete_date) AS sprint_complete_date ,
-                   istd_s.status as issue_status ,
+                   ISNULL(istd_s.status,'NA') as issue_status_sprint_start ,
+                   ISNULL(istd_e.status,'NA') as issue_status_sprint_end ,
+                   ISNULL(istd_s.status,'NA') as issue_status ,
                    'sprint_start' date_type
               FROM jira.sprint ss
               LEFT JOIN nyc_issue_sprint_dates isd_s
@@ -120,18 +125,26 @@ view: __jk_sprint_start_end {
               LEFT JOIN nyc_issue_status_dates istd_s
                 ON istd_s.issue_id = isd_s.issue_id
                AND CONVERT_TIMEZONE('UTC', 'America/New_York', ss.start_date) between istd_s.effective_date and istd_s.expiry_date
+              LEFT JOIN nyc_issue_status_dates istd_e
+                ON istd_e.issue_id = isd_s.issue_id
+               AND CONVERT_TIMEZONE('UTC', 'America/New_York', ss.complete_date) between istd_e.effective_date and istd_e.expiry_date
               JOIN jira.issue i
                 ON i.id = isd_s.issue_id
                AND i.issue_type != 5
             UNION ALL
             select ss.id AS sprint_id,
                    isd_e.issue_id AS issue_id,
-                   ipd_e.story_points,
+                   CASE WHEN ISNULL(istd_e.status,'NA') = 'Done'
+                        THEN ipd_e.story_points
+                        ELSE 0
+                    END AS story_points,
                    ss.name AS sprint_name,
                    isd_e.effective_date AS date_added_to_sprint,
                    CONVERT_TIMEZONE('UTC', 'America/New_York', ss.start_date) AS sprint_start_date,
                    CONVERT_TIMEZONE('UTC', 'America/New_York', ss.complete_date) AS sprint_complete_date ,
-                   istd_e.status as issue_status ,
+                   ISNULL(istd_s.status,'NA') as issue_status_sprint_start ,
+                   ISNULL(istd_e.status,'NA') as issue_status_sprint_end ,
+                   ISNULL(istd_e.status,'NA') as issue_status ,
                    'sprint_end' date_type
               FROM jira.sprint ss
               LEFT JOIN nyc_issue_sprint_dates isd_e
@@ -143,6 +156,9 @@ view: __jk_sprint_start_end {
               LEFT JOIN nyc_issue_status_dates istd_e
                 ON istd_e.issue_id = isd_e.issue_id
                AND CONVERT_TIMEZONE('UTC', 'America/New_York', ss.complete_date) between istd_e.effective_date and istd_e.expiry_date
+              LEFT JOIN nyc_issue_status_dates istd_s
+                ON istd_s.issue_id = isd_e.issue_id
+               AND CONVERT_TIMEZONE('UTC', 'America/New_York', ss.start_date) between istd_s.effective_date and istd_s.expiry_date
               JOIN jira.issue i
                 ON i.id = isd_e.issue_id
                AND i.issue_type != 5
@@ -156,7 +172,8 @@ view: __jk_sprint_start_end {
                  s.sprint_start_date,
                  sp.end_date AS sprint_end_date,
                  s.sprint_complete_date,
-                 s.issue_status,
+                 s.issue_status_sprint_start,
+                 s.issue_status_sprint_end,
                  s.date_type AS sprint_start_end_type,
                  b.name AS board_name,
                  ist.name AS issue_type,
@@ -189,8 +206,15 @@ view: __jk_sprint_start_end {
     description: "DateTime Issue Added to Sprint"
   }
 
-  dimension: issue_status {
+  dimension: issue_status_sprint_start {
     group_label: "Issue"
+    label: "Issue Status - StartOfSprint"
+    type: string
+  }
+
+  dimension: issue_status_sprint_end {
+    group_label: "Issue"
+    label: "Issue Status - EndOfSprint"
     type: string
   }
 
