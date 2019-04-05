@@ -116,16 +116,21 @@ view: __jk_sprint_start_end {
                    ISNULL(istd_s.status,'NA') as issue_status ,
                    'sprint_start' date_type
               FROM jira.sprint ss
-              LEFT JOIN nyc_issue_sprint_dates isd_s
+              --LEFT
+              JOIN nyc_issue_sprint_dates isd_s
                 ON isd_s.sprint_id = ss.id
                AND CONVERT_TIMEZONE('UTC', 'America/New_York', ss.start_date) between isd_s.effective_date and isd_s.expiry_date
-              LEFT JOIN nyc_issue_points_dates ipd_s
+              --LEFT
+              JOIN nyc_issue_points_dates ipd_s
                 ON ipd_s.issue_id = isd_s.issue_id
                AND CONVERT_TIMEZONE('UTC', 'America/New_York', ss.start_date) between ipd_s.effective_date and ipd_s.expiry_date
-              LEFT JOIN nyc_issue_status_dates istd_s
+              --LEFT
+              JOIN nyc_issue_status_dates istd_s
                 ON istd_s.issue_id = isd_s.issue_id
                AND CONVERT_TIMEZONE('UTC', 'America/New_York', ss.start_date) between istd_s.effective_date and istd_s.expiry_date
-              LEFT JOIN nyc_issue_status_dates istd_e
+               AND ISNULL(istd_s.status,'NA') != 'Done'
+              --LEFT
+              JOIN nyc_issue_status_dates istd_e
                 ON istd_e.issue_id = isd_s.issue_id
                AND CONVERT_TIMEZONE('UTC', 'America/New_York', ss.complete_date) between istd_e.effective_date and istd_e.expiry_date
               JOIN jira.issue i
@@ -147,18 +152,23 @@ view: __jk_sprint_start_end {
                    ISNULL(istd_e.status,'NA') as issue_status ,
                    'sprint_end' date_type
               FROM jira.sprint ss
-              LEFT JOIN nyc_issue_sprint_dates isd_e
+              --LEFT
+              JOIN nyc_issue_sprint_dates isd_e
                 ON isd_e.sprint_id = ss.id
                AND CONVERT_TIMEZONE('UTC', 'America/New_York', ss.complete_date) between isd_e.effective_date and isd_e.expiry_date
-              LEFT JOIN nyc_issue_points_dates ipd_e
+              --LEFT
+              JOIN nyc_issue_points_dates ipd_e
                 ON ipd_e.issue_id = isd_e.issue_id
                AND CONVERT_TIMEZONE('UTC', 'America/New_York', ss.complete_date) between ipd_e.effective_date and ipd_e.expiry_date
-              LEFT JOIN nyc_issue_status_dates istd_e
+              --LEFT
+              JOIN nyc_issue_status_dates istd_e
                 ON istd_e.issue_id = isd_e.issue_id
                AND CONVERT_TIMEZONE('UTC', 'America/New_York', ss.complete_date) between istd_e.effective_date and istd_e.expiry_date
-              LEFT JOIN nyc_issue_status_dates istd_s
+              --LEFT
+              JOIN nyc_issue_status_dates istd_s
                 ON istd_s.issue_id = isd_e.issue_id
                AND CONVERT_TIMEZONE('UTC', 'America/New_York', ss.start_date) between istd_s.effective_date and istd_s.expiry_date
+               AND ISNULL(istd_s.status,'NA') != 'Done'
               JOIN jira.issue i
                 ON i.id = isd_e.issue_id
                AND i.issue_type != 5
@@ -174,6 +184,7 @@ view: __jk_sprint_start_end {
                  s.sprint_complete_date,
                  s.issue_status_sprint_start,
                  s.issue_status_sprint_end,
+                 s.issue_status,
                  s.date_type AS sprint_start_end_type,
                  b.name AS board_name,
                  ist.name AS issue_type,
@@ -204,6 +215,11 @@ view: __jk_sprint_start_end {
   dimension: date_added_to_sprint  {
     type: date_time
     description: "DateTime Issue Added to Sprint"
+  }
+
+  dimension: issue_status {
+    group_label: "Issue"
+    type: string
   }
 
   dimension: issue_status_sprint_start {
@@ -285,7 +301,15 @@ view: __jk_sprint_start_end {
   measure: count_of_issues {
     group_label: "Totals"
     type:  count_distinct
-    sql: ${issue_key} ;;
+    sql: CASE WHEN ${sprint_start_end_type} = 'sprint_start'
+               AND ${issue_status} != 'Done'
+              THEN ${issue_key}
+              WHEN ${sprint_start_end_type} = 'sprint_end'
+               AND ${issue_status} = 'Done'
+              THEN ${issue_key}
+              ELSE NULL
+          END
+      ;;
   }
 
 }
