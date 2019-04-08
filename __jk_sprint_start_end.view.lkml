@@ -132,6 +132,10 @@ view: __jk_sprint_start_end {
               JOIN jira.issue i
                 ON i.id = isd_s.issue_id
                AND i.issue_type != 5
+             WHERE EXISTS ( SELECT 1 FROM jira.issue_sprint ise
+                             WHERE ise.issue_id = isd_s.issue_id
+                                -- ignore issues that are not assigned to sprints
+                               AND ise.sprint_id IS NOT NULL  )
             UNION ALL
             select ss.id AS sprint_id,
                    isd_e.issue_id AS issue_id,
@@ -164,8 +168,12 @@ view: __jk_sprint_start_end {
               JOIN jira.issue i
                 ON i.id = isd_e.issue_id
                AND i.issue_type != 5
+             WHERE EXISTS ( SELECT 1 FROM jira.issue_sprint ise
+                             WHERE ise.issue_id = isd_e.issue_id
+                                -- ignore issues that are not assigned to sprints
+                               AND ise.sprint_id IS NOT NULL  )
           )
-          select i.key AS issue_key,
+          SELECT i.key AS issue_key,
                  s.sprint_id,
                  s.issue_id,
                  s.story_points,
@@ -181,12 +189,12 @@ view: __jk_sprint_start_end {
                  b.name AS board_name,
                  ist.name AS issue_type,
                  i.start_date AS issue_start_date
-            from sprint_start_end_info s
-            left join jira.sprint sp on sp.id = s.sprint_id
-            left join jira.board b on b.id = sp.board_id
-            left join jira.issue i on i.id = s.issue_id
-            left join jira.issue_type ist on ist.id = i.issue_type
-           where s.issue_status_sprint_start != 'Done'
+            FROM sprint_start_end_info s
+            LEFT JOIN jira.sprint sp on sp.id = s.sprint_id
+            LEFT JOIN jira.board b on b.id = sp.board_id
+            LEFT JOIN jira.issue i on i.id = s.issue_id
+            LEFT JOIN jira.issue_type ist on ist.id = i.issue_type
+           WHERE s.issue_status_sprint_start != 'Done'
       ;;
   }
 
