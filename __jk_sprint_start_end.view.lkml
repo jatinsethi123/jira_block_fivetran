@@ -262,6 +262,11 @@ view: __jk_sprint_start_end {
     type: string
   }
 
+  dimension: sprint_id {
+    group_label: "Sprint"
+    type: string
+  }
+
   dimension_group: sprint_start_date {
     group_label: "Sprint Start Date"
     type: time
