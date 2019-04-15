@@ -172,6 +172,7 @@ view: __jk_sprint_start_end {
                              WHERE ise.issue_id = isd_e.issue_id
                                 -- ignore issues that are not assigned to sprints
                                AND ise.sprint_id IS NOT NULL  )
+               AND i.story_points IS NOT NULL -- ignore issues that have NULL points (TECH-7896)
           )
           SELECT i.key AS issue_key,
                  s.sprint_id,
