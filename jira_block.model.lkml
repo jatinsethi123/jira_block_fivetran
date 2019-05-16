@@ -82,6 +82,11 @@ explore: issue_history_2 {
     sql_on: ${issue.id} = ${issue_history_all.issue_id} ;;
     relationship: many_to_one
   }
+
+  join: issue_labels {
+    sql_on: ${issue.id} = ${issue_labels.issue_id} ;;
+    relationship: one_to_many
+  }
 }
 
 ### CURRENT OVERVIEW OF STATUS OF PROJECTS, ISSUES, AND ISSUE FACTS (E.G. # OF COMMENTS)
